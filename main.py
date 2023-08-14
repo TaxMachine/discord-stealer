@@ -1,5 +1,6 @@
 from target.discord import GetDiscordTokens
+from hardware.Hardware import Hardware
 
 if __name__ == '__main__':
-    tokens = GetDiscordTokens()
-    print(tokens)
+    hardware = Hardware()
+    print(hardware.ActivationKey)
