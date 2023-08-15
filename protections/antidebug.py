@@ -1,5 +1,6 @@
 from hardware.components.processes import Processes
 
+from ctypes import *
 from typing import List
 
 
@@ -25,5 +26,7 @@ debugprocesses: List[str] = [
 
 
 def DetectDebugger() -> bool:
+    if windll.kernel32.isDebuggerPresent():
+        return True
     for proc in debugprocesses:
         return proc in Processes()

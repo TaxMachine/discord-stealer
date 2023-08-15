@@ -6,7 +6,7 @@ from win32crypt import CryptUnprotectData
 
 
 def getmasterkey(keyfile):
-    with open(keyfile, "r") as f:
+    with open(keyfile, "r", encoding="utf-8") as f:
         content = json.loads(f.read())
     rawkey = content["os_crypt"]["encrypted_key"]
     return CryptUnprotectData(base64.b64decode(rawkey)[5:], None, None, None, 0)[1]
