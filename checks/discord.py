@@ -1,5 +1,6 @@
 import requests
 import json
+from utils.paths import json_to_obj
 from base64 import b64encode
 
 from typing import Dict, List
@@ -18,17 +19,45 @@ PROPERTIES = b64encode(json.dumps({
 }).encode()).decode()
 
 
-def json_to_obj(data: Dict, class_type):
-    obj = class_type()
-    for k, v in data.items():
-        obj.__setattr__(k, v)
-    return obj
+BADGES = {
+    "Discord Staff": 1,
+    "Discord Partner": 2,
+    "Hypesquad Event": 4,
+    "Bug Hunter": 8,
+    "Bravery": 64,
+    "Brilliance": 128,
+    "Early Supporter": 512,
+    "Gold Bug Hunter": 16374,
+    "Early Verified Bot Developer": 131072,
+    "Active Developer": 4194304,
+    "Moderator Programs Alumni": 587584
+}
+
+
+def ConvertBadges(flag: int) -> Dict[str, int]:
+    badges = {}
+    for k, v in BADGES:
+        if flag == 0:
+            badges["None"] = 0
+        elif v == (v << flag):
+            badges[k] = v
+    return badges
+
+
+def ConvertNitro(subscription_type: int) -> str:
+    match subscription_type:
+        case 0:
+            return "None"
+        case 1:
+            return "Nitro Basic"
+        case 2:
+            return "Nitro Boost"
 
 
 class DiscordUser:
     def __init__(self):
         self.id = ""
-        self.username: ""
+        self.username = ""
         self.avatar = ""
         self.discriminator = ""
         self.public_flags = 0
@@ -48,6 +77,12 @@ class DiscordUser:
         self.linked_users = []
         self.purchased_flags = 0
         self.bio = ""
+        self.token = ""
+
+        self.conections: List[DiscordConnection] = []
+        self.devices: List[DiscordDevice] = []
+        self.paymentsrc: List[DiscordPaymentSource] = []
+        self.friends: List[DiscordFriend] = []
 
 
 class DiscordConnection:
@@ -102,6 +137,24 @@ class DiscordPaymentSource:
         self.default = False
 
 
+class DiscordFriend:
+    class User:
+        def __init__(self):
+            self.avatar = None
+            self.avatar_decoration = None
+            self.discriminator = None
+            self.global_name = None
+            self.id = None
+            self.public_flags = None
+            self.username = None
+
+    def __init__(self):
+        self.id = None
+        self.nickname = None
+        self.type = None
+        self.user = None
+
+
 class Discord:
     def __init__(self, token: str):
         self.token = token
@@ -119,7 +172,25 @@ class Discord:
         payload = self.makeRequest(self.api + "/users/@me")
         if payload.status_code == 401:
             raise ValueError(payload.json()["message"])
-        return json_to_obj(payload.json(), DiscordUser)
+        obj: DiscordUser = json_to_obj(payload.json(), DiscordUser)
+        obj.token = self.token
+        obj.conections = self.GetConnections()
+        obj.devices = self.GetDevices()
+        obj.paymentsrc = self.GetPaymentSources()
+        obj.friends = self.GetFriends()
+        return obj
+
+    def GetFriends(self):
+        payload = self.makeRequest(self.api + "/users/@me/relationships")
+        if payload.status_code == 401:
+            raise ValueError(payload.json()["message"])
+        res = []
+        for obj in payload.json():
+            user = json_to_obj(obj["user"], DiscordFriend.User)
+            friend: DiscordFriend = json_to_obj(obj, DiscordFriend)
+            friend.user = user
+            res.append(friend)
+        return res
 
     def GetConnections(self) -> List[DiscordConnection]:
         payload = self.makeRequest(self.api + "/users/@me/connections")

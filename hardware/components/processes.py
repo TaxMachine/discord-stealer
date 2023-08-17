@@ -1,5 +1,5 @@
-from multiprocessing import active_children
+from psutil import process_iter
 
 
 def Processes():
-    return active_children()
+    return process_iter()

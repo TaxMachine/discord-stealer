@@ -1,4 +1,7 @@
-cryptography=41.0.3
+cryptography==41.0.3
 pywin32==306
 cryptography~=41.0.3
 WMI~=1.5.1
+requests~=2.31.0
+vdf~=3.4
+psutil~=5.9.5
