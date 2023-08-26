@@ -7,7 +7,7 @@ from os.path import join, sep, exists
 from glob import glob
 from typing import List
 
-INJECTION = "//caca xd\nmodule.exports = require('./core.asar');"  # if empty will not do anything, put your own injection if you want this module
+INJECTION = ""  # if empty will not do anything, put your own injection if you want this module
 DISCORD_REGEX = re.compile(r"Discord(.*?)\.exe")
 
 
@@ -43,6 +43,3 @@ def GetDiscordClientsFolders() -> List[DiscordProcess]:
         index = join(p, "modules", "discord_desktop_core-1", "discord_desktop_core", "index.js")
         res.append(DiscordProcess(proc, index))
     return res
-
-
-InjectDiscordClients("caca lol")

@@ -12,5 +12,9 @@ def GetServer() -> str:
 def UploadFile(path: str):
     try:
         r = requests.post(f"https://{GetServer()}.gofile.io/uploadFile", files={"file": path})
+        r = r.json()
+        if not r["status"] == "ok":
+            raise FileNotFoundError("Couldn't upload " + path)
+        return r["data"]["downloadPage"]
     except ConnectionError:
         raise

@@ -1,8 +1,13 @@
 import base64
 import json
 
+from Crypto.PublicKey import ECC
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from win32crypt import CryptUnprotectData
+
+from config import RSA_PUBLIC_KEY
+
+PUBLIC_KEY = ECC.import_key(RSA_PUBLIC_KEY)
 
 
 def getmasterkey(keyfile):
